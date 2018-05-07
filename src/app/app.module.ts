@@ -2,7 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-import { DataTablesModule } from 'angular-datatables';
+import { AngularDateTimePickerModule } from 'angular2-datetimepicker';
 
 import { AppComponent } from './app.component';
 import { TimeService } from './providers/time-service';
@@ -25,7 +25,7 @@ import { HeaderComponent } from './header/header.component';
         ToasterModule.forRoot(),
         HttpModule,
         FormsModule,
-        DataTablesModule
+        AngularDateTimePickerModule
     ],
     providers: [
         TimeService

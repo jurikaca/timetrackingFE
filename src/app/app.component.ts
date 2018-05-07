@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { TimeService } from './providers/time-service';
 import { ToasterService} from 'angular2-toaster';
+import { TableComponent } from './table/table.component';
 
 @Component({
     selector: 'app-root',
@@ -8,6 +9,9 @@ import { ToasterService} from 'angular2-toaster';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent{
+    @ViewChild(TableComponent) table_component:TableComponent;
+
+    loader:         boolean = false; // boolean value whether to show loader or not
     seconds:        number = 0; // store seconds tracked by timer
     time_tracked:   string = '00:00:00'; // time tracked displayed on time format, variable to show real time the timer
     is_started:     boolean = false; // true if timer has started
@@ -15,11 +19,19 @@ export class AppComponent{
     is_paused:      boolean = false; // true if timer is paused
     is_stopped:     boolean = false; // true if timer is stopped
     intervalID:     any; // variable to store setInterval function
+    date_finished:  Date; // date finished of the task
 
     time_hours:     number = 0; // time on hours when logging time without timer
     time_logged:    string = '00:00:00'; // time format to show on modal when logging time
     description:    string = ''; // description of time logged
     free_time_log:  boolean = false; // true if user is loggin time without timer
+
+    settings = { // datetimepicker options
+        bigBanner: true,
+        timePicker: true,
+        format: 'yyyy-MM-dd HH:mm',
+        defaultOpen: false
+    };
 
     constructor(
         private _timeService: TimeService,
@@ -34,7 +46,7 @@ export class AppComponent{
     initInterval() : any{
         return setInterval(() => {
             this.seconds++;
-            this.time_tracked = this.formatTime(this.seconds);
+            this.time_tracked = this._timeService.formatTime(this.seconds);
         },1000);
     }
 
@@ -84,6 +96,7 @@ export class AppComponent{
      * function to open modal for logging tracked time
      */
     logTrackedTime(){
+        this.date_finished = new Date(); // set date finished to now
         this.free_time_log = false;
         this.description = '';
         document.getElementById('openModalButton').click();
@@ -94,6 +107,7 @@ export class AppComponent{
      * function to open modal for logging time without tracking it
      */
     logFreeTime(){
+        this.date_finished = new Date(); // set date finished to now
         this.time_hours = 0;
         this.free_time_log = true;
         this.time_logged = '00:00:00';
@@ -105,18 +119,22 @@ export class AppComponent{
      * function to log time, post data to server for storing time logged
      */
     saveTime(){
+        this.loader = true;
         let seconds = this.free_time_log === true ? Math.round(this.time_hours * 3600) : this.seconds;
         this._timeService.logTime(
             {
                 seconds                 :   seconds,
-                time_tracked_formatted  :   this.formatTime(seconds),
+                date_finished           :   this._timeService.formatDate(this.date_finished),
+                time_tracked_formatted  :   this._timeService.formatTime(seconds),
                 description             :   this.description
             }
         ).then(response => {
+            this.loader = false;
             if(response.success){
                 this.resetTimer();
                 document.getElementById('close').click();
                 this.toasterService.pop('success', 'Success', response.msg);
+                this.table_component.initTable();
             }else{
                 console.log(response);
             }
@@ -142,26 +160,15 @@ export class AppComponent{
      * @returns {string}, format 'HH:ii:ss'
      */
     formatTime(seconds_input) : string{
-        let hours   = Math.floor(seconds_input / 3600);
-        let minutes = Math.floor((seconds_input - (hours * 3600)) / 60);
-        let seconds = seconds_input - (hours * 3600) - (minutes * 60);
-        let time_tracked = '';
+        return this._timeService.formatTime(seconds_input);
+    }
 
-        if (hours < 10) {
-            time_tracked += "0"+hours.toFixed(0)+":";
-        }else{
-            time_tracked += hours.toFixed(0)+":";
-        }
-        if (minutes < 10) {
-            time_tracked += "0"+minutes.toFixed(0)+":";
-        }else{
-            time_tracked += minutes.toFixed(0)+":";
-        }
-        if (seconds < 10) {
-            time_tracked += "0"+seconds.toFixed(0);
-        }else{
-            time_tracked += seconds.toFixed(0);
-        }
-        return time_tracked;
+    /**
+     * function to generate actual date and time 'yyyy-mm-dd hh:ii'
+     *
+     * @returns {string}
+     */
+    formatDate(date_input) : string{
+        return this._timeService.formatDate(date_input);
     }
 }

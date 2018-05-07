@@ -6,7 +6,7 @@
         Log free time
       </button>
     </div>
-    <div class="col-md-12" style="text-align: center;">
+    <div class="col-md-12 center">
       <span style="font-size:22px; padding:10px;">
         {{ time_tracked }}
       </span>
@@ -15,7 +15,7 @@
           <i class="fa fa-play {{is_started == false ? 'fa-play' : (is_paused == true ? 'fa-play-circle' : 'fa fa-pause') }}" aria-hidden="true"></i>
         </button>
         <button class="btn btn-{{ is_stopped == true ? 'primary' : 'default'}}" (click)="is_stopped == true ? logTrackedTime() : stopTimer()" *ngIf="is_started == true">
-          <i class="fa fa-stop" aria-hidden="true" style="color: red;" *ngIf = "is_stopped == false"></i>
+          <i class="fa fa-stop red" aria-hidden="true" *ngIf = "is_stopped == false"></i>
           {{ is_stopped == true ? 'Log Time' : ''}}
         </button>
         <button class="btn btn-default" (click)="resetTimer()" *ngIf="is_stopped == true">
@@ -37,12 +37,12 @@
       <div class="modal-header">
         <button type="button" class="close" id="close" data-dismiss="modal">&times;</button>
         <h4 class="modal-title">
-          {{ free_time_log == true ? 'Log time without tracker' : 'Log time ' + time_logged}}
+          {{ free_time_log === true ? 'Log time without tracker' : 'Log time ' + time_logged}}
         </h4>
       </div>
       <div class="modal-body">
         <form (ngSubmit)="saveTime()" #documentEditForm="ngForm">
-          <div class="form-group" *ngIf = "free_time_log == true">
+          <div class="form-group" *ngIf = "free_time_log === true">
             <label for="time_hours_field">Time on hours</label>
             <input type="number" class="form-control" id="time_hours_field" minlength="1" required name="time_hours_field" placeholder="Add time on hours ex. 2.23 where 0.23 is 23% of one hour" [(ngModel)]="time_hours" (keyup) = "time_logged = formatTime(time_hours * 3600)" (change) = "time_logged = formatTime(time_hours * 3600)" #time_hours_field="ngModel">
             <div *ngIf="time_hours_field.errors && (time_hours_field.dirty || time_hours_field.touched)" class="text-danger">
@@ -59,6 +59,11 @@
             <input type="text" class="form-control" id="time_logged" name="time_logged" placeholder="Enter time" [(ngModel)]="time_logged" [disabled] = "true">
           </div>
           <div class="form-group">
+            <label for="time_logged">Date</label>
+            <angular2-date-picker [(ngModel)]="date_finished" [settings]="settings" name="date_finished" *ngIf="free_time_log === true"></angular2-date-picker>
+            <input type="text" class="form-control" id="date_finished" name="date_finished" placeholder="Date" value="{{formatDate(date_finished)}}" *ngIf="free_time_log != true" [disabled]="true">
+          </div>
+          <div class="form-group">
             <label for="description_field">Task Decription</label>
             <textarea rows="4" class="form-control is-invalid" id="description_field" required name="description_field" [(ngModel)]="description" #description_field="ngModel"></textarea>
             <div *ngIf="description_field.errors && (description_field.dirty || description_field.touched)" class="text-danger">
@@ -70,7 +75,9 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" (click)="documentEditForm.ngSubmit.emit()" [disabled]="!documentEditForm.form.valid">Log Time</button>
+        <button type="button" class="btn btn-primary" (click)="documentEditForm.ngSubmit.emit()" [disabled]="!documentEditForm.form.valid || loader === true">
+          {{ loader === true ? 'Saving...' : 'Log Time' }}
+        </button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
