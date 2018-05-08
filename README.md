@@ -1,6 +1,6 @@
 # Timetracker
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3.
+This front-end of the project is built with Angular 5.2 and it was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3.
 
 ## Project Overview
 
